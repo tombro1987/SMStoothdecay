@@ -1,0 +1,1453 @@
+library("sp")
+library("sjmisc")
+library("haven")
+adhs <- read_spss("adult_dental_health_survey_2009_end_user_licence_270712.sav")
+
+keep <- c("Sex", "DVHsize", "ageband5", "xMarSta2", "QHealth1", "Car",
+          "EdAttn3", "NSSEC8", "ethnicg", "numdu98")#, "ClnTthG4")
+adhs <- adhs[, keep]
+
+column.names <- c("Sex", "DVHsize", "ageband5", "MarSta", "QHealth1", "Car", "EdAttn3",
+                  "NSSEC", "Ethnicity", "numdu98")#, "ClnTthG4")
+names(adhs) <- column.names
+rm(keep, column.names)
+table(adhs$DVHsize)
+adhs$tdecay <- NA
+adhs$tdecay[adhs$numdu98 == 0] <- 0
+adhs$tdecay[adhs$numdu98 > 0] <- 1
+adhs$tdecay[adhs$numdu98 > 25] <- NA
+
+## removing NAs from the DVHsize column ##
+
+adhs$DVHsize[adhs$DVHsize==-1] <- NA
+adhs$DVHsize[adhs$DVHsize==-2] <- NA
+adhs$DVHsize[adhs$DVHsize==-6] <- NA
+adhs$DVHsize[adhs$DVHsize==-7] <- NA
+adhs$DVHsize[adhs$DVHsize==-8] <- NA
+adhs$DVHsize[adhs$DVHsize==-9] <- NA
+
+## removing NAs from the Sex column ##
+
+adhs$Sex[adhs$Sex==-1] <- NA
+adhs$Sex[adhs$Sex==-2] <- NA
+adhs$Sex[adhs$Sex==-6] <- NA
+adhs$Sex[adhs$Sex==-7] <- NA
+adhs$Sex[adhs$Sex==-8] <- NA
+adhs$Sex[adhs$Sex==-9] <- NA
+
+## removing NAs from the ageband5 column ##
+
+adhs$ageband5[adhs$ageband5==-1] <- NA
+adhs$ageband5[adhs$ageband5==-2] <- NA
+adhs$ageband5[adhs$ageband5==-6] <- NA
+adhs$ageband5[adhs$ageband5==-7] <- NA
+adhs$ageband5[adhs$ageband5==-8] <- NA
+adhs$ageband5[adhs$ageband5==-9] <- NA
+
+## removing from Marsta column
+
+#adhs$MarSta[adhs$MarSta==-1] <- NA
+adhs$MarSta[adhs$MarSta==-2] <- NA
+adhs$MarSta[adhs$MarSta==-6] <- NA
+adhs$MarSta[adhs$MarSta==-7] <- NA
+adhs$MarSta[adhs$MarSta==-8] <- NA
+adhs$MarSta[adhs$MarSta==-9] <- NA
+summary(adhs$MarSta) # 8 NAs
+
+## removing from QHealth1 column
+
+adhs$QHealth1[adhs$QHealth1==-1] <- NA
+adhs$QHealth1[adhs$QHealth1==-2] <- NA
+adhs$QHealth1[adhs$QHealth1==-6] <- NA
+adhs$QHealth1[adhs$QHealth1==-7] <- NA
+adhs$QHealth1[adhs$QHealth1==-8] <- NA
+adhs$QHealth1[adhs$QHealth1==-9] <- NA
+summary(adhs$QHealth1) # 1 NA
+
+## removing from Car column
+
+adhs$Car[adhs$Car==-1] <- NA
+adhs$Car[adhs$Car==-2] <- NA
+adhs$Car[adhs$Car==-6] <- NA
+adhs$Car[adhs$Car==-7] <- NA
+adhs$Car[adhs$Car==-8] <- NA
+adhs$Car[adhs$Car==-9] <- NA
+summary(adhs$Car) # 19 NAs
+
+## removing the NAs from the EdATTn3 column ##
+
+adhs$EdAttn3[adhs$EdAttn3==-1] <- NA
+adhs$EdAttn3[adhs$EdAttn3==-2] <- NA
+adhs$EdAttn3[adhs$EdAttn3==-6] <- NA
+adhs$EdAttn3[adhs$EdAttn3==-7] <- NA
+adhs$EdAttn3[adhs$EdAttn3==-8] <- NA
+adhs$EdAttn3[adhs$EdAttn3==-9] <- NA
+summary(adhs$EdAttn3) # 2325 NAs!
+
+## removing the NAs from the NSSEC column ##
+
+adhs$NSSEC[adhs$NSSEC==-1.0] <- NA
+adhs$NSSEC[adhs$NSSEC==-2.0] <- NA
+adhs$NSSEC[adhs$NSSEC==-6.0] <- NA
+adhs$NSSEC[adhs$NSSEC==-7.0] <- NA
+adhs$NSSEC[adhs$NSSEC==-8.0] <- NA
+adhs$NSSEC[adhs$NSSEC==-9.0] <- NA
+adhs$NSSEC[adhs$NSSEC==97.0] <- NA
+summary(adhs$NSSEC) # 208 NAs!
+
+## removing the NAs from the Ethnicity column ##
+
+adhs$Ethnicity[adhs$Ethnicity==-1] <- NA
+adhs$Ethnicity[adhs$Ethnicity==-2] <- NA
+adhs$Ethnicity[adhs$Ethnicity==-6] <- NA
+adhs$Ethnicity[adhs$Ethnicity==-7] <- NA
+adhs$Ethnicity[adhs$Ethnicity==-8] <- NA
+adhs$Ethnicity[adhs$Ethnicity==-9] <- NA
+summary(adhs$Ethnicity) # 22 NAs
+
+
+# adhs$ClnTthG4[adhs$ClnTthG4==-1] <- NA
+# adhs$ClnTthG4[adhs$ClnTthG4==-2] <- NA
+# adhs$ClnTthG4[adhs$ClnTthG4==-6] <- NA
+# adhs$ClnTthG4[adhs$ClnTthG4==-7] <- NA
+# adhs$ClnTthG4[adhs$ClnTthG4==-8] <- NA
+# adhs$ClnTthG4[adhs$ClnTthG4==-9] <- NA
+#table(adhs.raw$NSSEC, useNA="ifany")
+adhs <- na.omit(adhs)
+
+adhs.raw <- data.frame(adhs)
+table(adhs$MarSta)
+adhs.raw$tdecay <- factor(adhs$tdecay, levels = 0:1, labels = c("No tooth decay",
+                                                                "Tooth decay"))
+adhs.raw$Sex <- factor(adhs$Sex, levels = 1:2, labels  = c("Male", "Female"))
+adhs.raw$MarSta <- factor(adhs$MarSta, levels = 1:6, labels = c("Single", "Married", "Civil partnership",
+                                                                "Seperated", "Divorced", "Widowed"))
+adhs.raw$ageband5 <- factor(adhs$ageband5, levels = 1:8, labels = c("16to24", "25to34", "35to44", "45to54",
+                                                                    "55to64", "65to74", "75to84", "85+"))
+adhs.raw$QHealth1 <- factor(adhs$QHealth1, levels = 1:5, labels = c("Very good", "Good",
+                                                                    "fair", "bad", "very bad"))
+adhs.raw$Car <- factor(adhs$Car, levels = 1:2, labels = c("Yes", "No"))
+adhs.raw$EdAttn3 <- factor(adhs$EdAttn3, levels = 1:2, labels = c("Degree OH", "Other qual"))
+adhs.raw$NSSEC <- factor(adhs$NSSEC, levels = c(1.1, 1.2, 2:8), 
+                         labels = c("LargeEmpHighMan", "HighProfOC", "LowManProf",
+                                    "Intermediate", "SmallEmpOAW", "LowerSupTechOC",
+                                    "semi-routine", "Routine", "Neverworked"))
+adhs.raw$Ethnicity <- factor(adhs$Ethnicity, levels = 1:9, labels = c("White Br/O", "Mixed race", "Asian-Ind",
+                                                                      "Asian - P&B", "Asian - Oth", "BlackCarib",
+                                                                      "BlackAf", "OtherBl", "OthEthG"))
+adhs.raw$DVHsize <- factor(adhs$DVHsize, levels = 1:10, labels = c("one", "two", "three", "four", "five", "six",
+                                                                   "seven", "eight", "nine", "ten+"))
+
+# #install.packages("source.gist")
+# #library("source.gist")
+# install.packages("devtools")
+# library("devtools")
+# source_gist("07ea7cdefdb4d49baded")
+# adhs$tdecay <- relevel(adhs$tdecay, ref = "No tooth decay")
+# #adhs$ClnTthG4 <- relevel(adhs$ClnTthG4, ref = "never")
+# 
+# # modelCT <- glm(tdecay ~ ClnTthG4, data = adhs, family = binomial())
+# # logit_reg_test(modelCT)
+# 
+# #### GLM ####
+# 
+# modelDVH <- glm(tdecay ~ DVHsize, data = adhs.raw, family = binomial())
+# logit_reg_test(modelDVH)
+# modelSex <- glm(tdecay ~ Sex, data = adhs.raw, family = binomial())
+# logit_reg_test(modelSex)
+# modelageband <- glm(tdecay ~ ageband5, data = adhs.raw, family = binomial())
+# logit_reg_test(modelageband)
+# modelmarsta <- glm(tdecay ~ MarSta, data = adhs.raw, family = binomial())
+# logit_reg_test(modelmarsta)
+# modelqhealth <- glm(tdecay ~ QHealth1, data = adhs.raw, family = binomial())
+# logit_reg_test(modelqhealth)
+# modelcar <- glm(tdecay ~ Car, data = adhs.raw, family = binomial())
+# logit_reg_test(modelcar)
+# modeled <- glm(tdecay ~ EdAttn3, data = adhs.raw, family = binomial())
+# logit_reg_test(modeled)
+# modelNSSEC <- glm(tdecay ~ NSSEC, data = adhs.raw, family = binomial())
+# logit_reg_test(modelNSSEC)
+# modeleth <- glm(tdecay ~ Ethnicity, data = adhs, family = binomial())
+# logit_reg_test(modeleth)
+# 
+# #### LM ####
+# 
+# modelDVH <- lm(numdu98 ~ DVHsize, data = adhs.raw)
+# summary(modelDVH)
+# modelSex <- lm(numdu98 ~ Sex, data = adhs.raw)
+# summary(modelSex)
+# modelageband <- lm(numdu98 ~ ageband5, data = adhs.raw)
+# summary(modelageband)
+# modelmarsta <- lm(numdu98 ~ MarSta, data = adhs.raw)
+# summary(modelmarsta)
+# modelqhealth <- lm(numdu98 ~ QHealth1, data = adhs.raw)
+# summary(modelqhealth)
+# modelcar <- lm(numdu98 ~ Car, data = adhs.raw)
+# summary(modelcar)
+# modeled <- lm(numdu98 ~ EdAttn3, data = adhs.raw)
+# summary(modeled)
+# modelNSSEC <- lm(numdu98 ~ NSSEC, data = adhs.raw)
+# summary(modelNSSEC)
+# modeleth <- lm(numdu98 ~ Ethnicity, data = adhs)
+# summary(modeleth)
+# 
+# ggplot(adhs[adhs$numdu98 < 25, ], aes(numdu98)) + geom_histogram(binwidth = 1)
+
+# #### creating a binary category for whether a person is from Yorks and Humber or not ====
+# 
+# adhs$region <- ifelse(adhs$SHA==3, 1, 0)
+# table(adhs$region) # 410 in Y&H
+# 
+# ## how to identify where the 1's are - i.e. Yorks and Humber, and get rid of the 0's ##
+# 
+# adhs <- adhs[apply(adhs[c(12)],1,function(z) !any(z==0)),]
+# View(adhs)
+# adhs$region <- NULL # taking out the extra column for region
+# adhs.raw <- data.frame(adhs)
+# View(adhs.raw)
+
+#### Split the columns into the binary format ====
+
+# Sex
+
+adhs$male  <- ifelse(adhs$Sex==1, 1, 0)
+adhs$female <- ifelse(adhs$Sex==2, 1, 0)
+
+# ageband5
+
+adhs$a16to24_s <- ifelse(adhs$ageband5==1, 1, 0)
+adhs$a25to34_s <- ifelse(adhs$ageband5==2, 1, 0)
+adhs$a35to44_s <- ifelse(adhs$ageband5==3, 1, 0)
+adhs$a45to54_s <- ifelse(adhs$ageband5==4, 1, 0)
+adhs$a55to64_s <- ifelse(adhs$ageband5==5, 1, 0)
+adhs$a65to74_s <- ifelse(adhs$ageband5==6, 1, 0)
+adhs$a75to84_s <- ifelse(adhs$ageband5==7, 1, 0)
+adhs$a85plus_s <- ifelse(adhs$ageband5==8, 1, 0)
+
+# Marsta
+
+adhs$single <- ifelse(adhs$MarSta==1, 1, 0)
+adhs$married <- ifelse(adhs$MarSta==2, 1, 0)
+adhs$civilpart <- ifelse(adhs$MarSta==3, 1, 0)
+adhs$seperated <- ifelse(adhs$MarSta==4, 1, 0)
+adhs$disolve <- ifelse(adhs$MarSta==5, 1, 0)
+adhs$widow <- ifelse(adhs$MarSta==6, 1, 0)
+
+# QHealth
+
+adhs$Hvgood <- ifelse(adhs$QHealth1==1, 1, 0)
+adhs$Hgood <- ifelse(adhs$QHealth1==2, 1, 0)
+adhs$Hfair <- ifelse(adhs$QHealth1==3, 1, 0)
+adhs$Hbad <- ifelse(adhs$QHealth1==4, 1, 0)
+adhs$Hvbad<- ifelse(adhs$QHealth1==5, 1, 0)
+
+# Car
+
+adhs$Hascar <- ifelse(adhs$Car==1, 1, 0)
+adhs$Nocar <- ifelse(adhs$Car==2, 1, 0)
+
+# EdATTn3
+
+adhs$Highqual_s <- ifelse(adhs$EdAttn3==1, 1, 0)
+adhs$Otherqual_s <- ifelse(adhs$EdAttn3==2, 1, 0)
+
+# NSSEC
+
+adhs$N_1.1 <- ifelse(adhs$NSSEC==1.1, 1, 0)
+adhs$N_1.2 <- ifelse(adhs$NSSEC==1.2, 1, 0)
+adhs$N_2 <- ifelse(adhs$NSSEC==2.0, 1, 0)
+adhs$N_3 <- ifelse(adhs$NSSEC==3.0, 1, 0)
+adhs$N_4 <- ifelse(adhs$NSSEC==4.0, 1, 0)
+adhs$N_5 <- ifelse(adhs$NSSEC==5.0, 1, 0)
+adhs$N_6 <- ifelse(adhs$NSSEC==6.0, 1, 0)
+adhs$N_7 <- ifelse(adhs$NSSEC==7.0, 1, 0)
+adhs$N_8 <- ifelse(adhs$NSSEC==8.0, 1, 0)
+
+# Ethnicity
+
+adhs$whiteBr <- ifelse(adhs$Ethnicity==1, 1, 0)
+adhs$mixedR <- ifelse(adhs$Ethnicity==2, 1, 0)
+adhs$asianInd <- ifelse(adhs$Ethnicity==3, 1, 0)
+adhs$asianPAB <- ifelse(adhs$Ethnicity==4, 1, 0)
+adhs$asianO <- ifelse(adhs$Ethnicity==5, 1, 0)
+adhs$blackCar <- ifelse(adhs$Ethnicity==6, 1, 0)
+adhs$blackAf <- ifelse(adhs$Ethnicity==7, 1, 0)
+adhs$blackO <- ifelse(adhs$Ethnicity==8, 1, 0)
+adhs$otherEG <- ifelse(adhs$Ethnicity==9, 1, 0)
+
+# dvh size
+
+adhs$dvhONE <- ifelse(adhs$DVHsize==1, 1, 0)
+adhs$dvhTWO <- ifelse(adhs$DVHsize==2, 1, 0)
+adhs$dvhTHREE <- ifelse(adhs$DVHsize==3, 1, 0)
+adhs$dvhFOUR <- ifelse(adhs$DVHsize==4, 1, 0)
+adhs$dvhFIVE <- ifelse(adhs$DVHsize==5, 1, 0)
+adhs$dvhSIX <- ifelse(adhs$DVHsize==6, 1, 0)
+adhs$dvhSEVEN <- ifelse(adhs$DVHsize==7, 1, 0)
+adhs$dvhEIGHT <- ifelse(adhs$DVHsize==8, 1, 0)
+adhs$dvhNINE <- ifelse(adhs$DVHsize==9, 1, 0)
+adhs$dvhTEN <- ifelse(adhs$DVHsize==10, 1, 0)
+
+adhs$dvhEIGHT[adhs$dvhNINE == 1] <- 1
+adhs$dvhNINE <- NULL
+adhs$dvhTEN <-  NULL
+table(adhs$dvhEIGHT)
+
+#### removing the original variables (that are not in binary format) ====
+
+adhs$Serial <- NULL
+adhs$SHA <- NULL
+adhs$numdu98 <- NULL
+adhs$Sex <- NULL
+adhs$ageband5 <- NULL
+adhs$MarSta <- NULL
+adhs$QHealth1 <- NULL
+adhs$Car <- NULL
+adhs$EdAttn3 <- NULL
+adhs$NSSEC <- NULL
+adhs$Ethnicity <- NULL
+adhs$DVHsize <- NULL
+
+adhs.cat <- data.frame(adhs)
+View(adhs.cat)
+rm(adhs)
+
+# setwd("~/SMS_tooth_decay")
+# install.packages("xlsx")
+# library(xlsx)
+# write.csv(census.data, file = "census.test.csv")
+
+##################################################
+################ quick start #####################
+##################################################
+
+library("dplyr")
+
+# write.csv(adhs.cat, file = "adhs.cat.csv")
+census.data <- read.csv("census.data.csv")
+adhs.cat <-  read.csv("adhs.cat.csv")
+adhs.raw <- read.csv("adhs.raw.csv")
+#adhs.raw <- read.csv("adhs.raw2.csv")
+census.codes <- census.data[, 1]
+
+#### Data preperation ####
+
+### NEED TO REMOVE ETH AND MARSTA FROM ADHS.RAW!!!!! ###
+
+#census.data <- select(census.data, -1)
+adhs.cat <- select(adhs.cat, -1)
+adhs.raw <- select(adhs.raw, -1)
+
+census.data[, 14] <- NULL
+census.data[, 14] <- NULL
+census.data[, 14] <- NULL
+census.data[, 14] <- NULL
+census.data[, 14] <- NULL
+census.data[, 14] <- NULL
+
+adhs.cat[, 13] <- NULL
+adhs.cat[, 13] <- NULL
+adhs.cat[, 13] <- NULL
+adhs.cat[, 13] <- NULL
+adhs.cat[, 13] <- NULL
+adhs.cat[, 13] <- NULL
+
+con_age <- census.data[, 2:9]
+con_sex <- census.data[, 10:11]
+con_edu <- census.data[, 12:13]
+con_nsc <- census.data[, 14:22]
+con_ghe <- census.data[, 24:28]
+con_car <- census.data[, 29:30]
+
+
+# CHECKS! # 
+
+table(rowSums(con_age) == rowSums(con_sex))
+table(rowSums(con_age) == rowSums(con_car)) # 1 false
+table(rowSums(con_age) == rowSums(con_edu))
+table(rowSums(con_age) == rowSums(con_ghe))
+table(rowSums(con_age) == rowSums(con_nsc)) # 345 false!
+
+# should be 452014
+sum(con_age)
+sum(con_sex)
+sum(con_car) # 452010
+sum(con_edu)
+sum(con_ghe)
+sum(con_nsc) # 386023
+
+rowSums(con_age) == rowSums(con_car) # row 189
+rowSums(con_age) == rowSums(con_nsc)
+
+
+## Sorting the nssec unclassified's ##
+
+census.data$NS_tot <- NA
+census.data$NS_tot <- rowSums(census.data[, 14:22])
+
+census.data[, 14:22] <- sapply(14:22, function(x)
+  census.data[, x] / census.data$NS_tot
+)
+rowSums(census.data[which(rowSums(census.data[, 14:22]) != 1), 14:22])
+
+census.data[, 14:22] <- sapply(14:22, function(x)
+  census.data[, x]*(census.data$NS_tot + census.data[, 23])
+)
+
+all(rowSums(census.data[, 14:22]) == census.data[, 23] + census.data$NS_tot)
+
+census.data$NS_tot <- c(census.data$NS_tot + census.data$not_classified) 
+census.data[, 23] <- NULL
+adhs.cat[, 22] <- NULL
+
+census.data[, 14:22] <- round(census.data[, 14:22])
+all(rowSums(census.data[, 14:22]) == census.data[, 23])
+which(rowSums(census.data[, 14:22]) != census.data$NS_tot)
+rowSums(census.data[, 14:22])
+
+source(file="tempV3.R")
+
+all(rowSums(census.data[, 13:21]) == census.data[, 29])
+census.data[, 29] <- NULL
+
+rm(census.dataN, census.dataY, cdm1, cdm2, cdp1, cdp2)
+
+# importing corrected data
+
+census.data <- read.csv("census.test.Jan16.csv")
+census.data[, 1] <- NULL
+census.data[, 1] <- NULL
+census.data[, 29] <- NULL
+
+con_age <- census.data[, 1:8]
+con_sex <- census.data[, 9:10]
+con_edu <- census.data[, 11:12]
+con_nsc <- census.data[, 13:21]
+con_ghe <- census.data[, 22:26]
+con_car <- census.data[, 27:28]
+
+table(rowSums(con_age) == rowSums(con_sex)) # none false
+table(rowSums(con_age) == rowSums(con_car)) # none false 
+table(rowSums(con_age) == rowSums(con_edu)) # none false
+table(rowSums(con_age) == rowSums(con_ghe)) # none false
+table(rowSums(con_age) == rowSums(con_nsc)) # none false
+
+rowSums(con_age) == rowSums(con_sex)
+rowSums(con_age) == rowSums(con_car)
+rowSums(con_age) == rowSums(con_edu)
+rowSums(con_age) == rowSums(con_ghe)
+rowSums(con_age) == rowSums(con_nsc) 
+
+which(rowSums(census.data[, 1:8]) != rowSums(census.data[, 9:10])) # sex - none
+which(rowSums(census.data[, 1:8]) != rowSums(census.data[, 27:28])) # car - none
+which(rowSums(census.data[, 1:8]) != rowSums(census.data[, 11:12])) # edu - none
+which(rowSums(census.data[, 1:8]) != rowSums(census.data[, 22:26])) # ghe - none
+which(rowSums(census.data[, 1:8]) != rowSums(census.data[, 13:21])) # nsc - none
+
+# should be 452014
+sum(con_age) # 452014
+sum(con_sex) # 452014
+sum(con_car) # 452014
+sum(con_edu) # 452014
+sum(con_ghe) # 452014
+sum(con_nsc) # 452014
+
+sum(census.data[, 1:8])
+sum(census.data[, 9:10])
+sum(census.data[, 11:12])
+sum(census.data[, 13:21])
+sum(census.data[, 22:26])
+sum(census.data[, 27:28])
+
+## making all the data numeric ##
+
+census.data <- apply(census.data, 2, as.numeric)
+adhs.cat <- apply(adhs.cat, 2, as.numeric)
+colnames(census.data) <- colnames(adhs.cat)
+
+#### Using Robin's SMS code ####
+
+# weights matrix (2d)
+# weights <- array(NA, dim=c(nrow(adhs.raw), nrow(census.data)))
+# rm(weights)
+
+# aggregate survey data for comparison with census data
+# adhs.agg <- matrix(colSums(adhs.cat), nrow(census.data), ncol(census.data), byrow = T)
+
+adhs.raw <- select(adhs.raw, -tdecay)
+
+#census.data <- census.data[, -22]
+#adhs.cat <- adhs.cat[, -22]
+
+# IPF
+# install.packages("ipfp")
+library("ipfp")
+
+x0 <- rep(1, nrow(adhs.raw))
+
+adhs_catt <- t(adhs.cat)
+
+weights <- apply(census.data, 1, function(x)
+  ipfp(x, adhs_catt, x0, maxit = 15))
+
+# converting back to aggregates
+adhs.agg <- t(apply(weights, 2, function(x) colSums(x * adhs.cat)))
+
+# test result for first row
+adhs.agg[1,1:13] - census.data[1,1:13]
+cor(as.numeric(adhs.agg), as.numeric(census.data))
+
+plot(as.numeric(census.data), as.numeric(adhs.agg))
+
+# ggplot_test <- data.frame(
+#   as.numeric(census.data),
+#   as.numeric(adhs.agg)
+#   )
+# library("ggplot2")
+# 
+# ggplot(data = ggplot_test, aes(x = `as.numeric.census.data.`, y = `as.numeric.adhs.agg.`)) +
+#   geom_point() + xlab("Census data") + ylab("Aggregated survey data")# + geom_abline()
+
+plot(as.numeric(census.data[, 1:8]), as.numeric(adhs.agg[, 1:8]))
+cor(as.numeric(census.data[, 1:8]), as.numeric(adhs.agg[, 1:8]))
+plot(as.numeric(census.data[, 9:10]), as.numeric(adhs.agg[, 9:10]))
+cor(as.numeric(census.data[, 9:10]), as.numeric(adhs.agg[, 9:10]))
+plot(as.numeric(census.data[, 11:12]), as.numeric(adhs.agg[, 11:12]))
+cor(as.numeric(census.data[, 11:12]), as.numeric(adhs.agg[, 11:12]))
+plot(as.numeric(census.data[, 13:21]), as.numeric(adhs.agg[, 13:21]))
+cor(as.numeric(census.data[, 13:21]), as.numeric(adhs.agg[, 13:21]))
+plot(as.numeric(census.data[, 22:26]), as.numeric(adhs.agg[, 22:26]))
+cor(as.numeric(census.data[, 22:26]), as.numeric(adhs.agg[, 22:26]))
+plot(as.numeric(census.data[, 27:28]), as.numeric(adhs.agg[, 27:28]))
+cor(as.numeric(census.data[, 27:28]), as.numeric(adhs.agg[, 27:28]))
+
+#### integeristaion bit ====
+
+# Script 'integerising' SMS_tooth_decay weights, generating, exploring spatial microdata
+
+source(file="functions_shef.R") # functions for spatial microsimulation, inc. int_trs
+
+#### integerisation
+
+ints <- unlist(apply(weights, 2, int_trs)) # generate integerised result
+ints_df <- data.frame(id = ints, zone = rep(1:nrow(census.data), round(colSums(weights))))
+adhs.raw$id <- 1:nrow(adhs.raw) # assign each individual an id
+
+# Create spatial microdata, by joining the ids with associated attributes
+ints_df <- inner_join(ints_df, adhs.raw) # commented out to increase run-times
+
+summary(ints_df[ ints_df$zone == 3, ])
+#View(ints_df[ ints_df$zone == 1, ])
+
+## validating the results
+
+CorVec <- rep(0, dim(census.data)[1])
+
+for (i in 1:dim(census.data)[1]){
+  CorVec[i] <-  cor(as.numeric(census.data[i,]), as.numeric(adhs.agg[i,]))
+}
+
+summary(CorVec)
+which.min(CorVec) # zone with worst fit - 189
+head(order(CorVec), n = 3) # 189, 203, 26
+
+#### Total absolute error (TAE) ####
+
+tae <- function(observed, simulated){
+  obs_vec <- as.numeric(observed)
+  sim_vec <- as.numeric(simulated)
+  sum(abs(obs_vec - sim_vec))
+}
+
+options("scipen"=100, "digits"=4) # - gets rid of exponential notation
+
+tae(census.data, adhs.agg) # 30.12193 when using 10+ iterations
+
+#### Standardised absolute error (SAE) ####
+
+tae(census.data, adhs.agg)/sum(census.data) # 1.110659e-05
+
+#### performing the analysis zone by zone
+
+# inintialise the vectors
+TAEvec <- rep(0, nrow(census.data))
+SAEvec <- rep(0, nrow(census.data))
+
+# correlation for each zone
+
+for(i in 1:nrow(census.data)){
+  TAEvec[i] <- tae (census.data[i,], adhs.agg[i,])
+  SAEvec[i] <- TAEvec[i]/ sum(census.data[i,])
+}
+summary(TAEvec)
+summary(SAEvec)
+
+which.max(TAEvec) # zone 189
+which.max(SAEvec) # zone 189
+
+tail(order(TAEvec), n = 3) # zones 26  18 189
+tail(order(SAEvec), n = 3) # zones 203  18 189
+View(census.codes)
+# what proportion of error in the model arises from the worst zone?
+
+worst_zone <- which.max(TAEvec)
+TAEvec[worst_zone] / sum(TAEvec) # 0.6639681 (66.4%)
+
+cor(TAEvec, SAEvec) # - 0.9984332
+
+## investigating the variables responsible for error in given zones
+
+RudeDiff <- census.data[163,] - adhs.agg[163,] # why 163?
+#View(RudeDiff) # differences for zone 163
+diff <- round(abs(RudeDiff))
+#View(diff) # actual differences
+diff[diff>0] # None are out when rounded
+
+#### Mapping to show the zones with high/low error ####
+
+install.packages("ggplot2")
+install.packages("rgdal")
+install.packages("plyr")
+install.packages("rgeos")
+install.packages("maptools")
+require("ggplot2")
+require("rgdal")
+require("plyr")
+require("rgeos")
+require("maptools")
+
+## TAE ##
+
+census.codes <- data.frame(census.codes)
+colnames(census.codes) <- c("CODE")
+census.codes <- data.frame(CODE = census.codes, TAEvec)
+
+shef.lsoa <- readOGR(dsn = ".", "england_lsoa_2011Polygon")
+
+# shef.lsoa <- readShapeSpatial("england_lsoa_2011Polygon", proj4string = CRS("+init=epsg:27700"))
+# proj4string(shef.lsoa) <- CRS("+init=epsg:27700")
+summary(census.codes)
+# shef.lsoa@data = data.frame(shef.lsoa@data, census.codes[match(shef.lsoa@data[, "code"], census.codes[, "CODE.CODE"]),])
+summary(shef.lsoa)
+View(shef.lsoa@data)
+
+shef.lsoa@data <- merge(shef.lsoa@data, census.codes, by.x = "code", by.y = "CODE")
+shef.f <- fortify(shef.lsoa, region = "code")
+shef.f <- merge(shef.f, shef.lsoa@data, by.x = "id", by.y = "code")
+head(shef.f)
+source("https://gist.githubusercontent.com/philmikejones/d1f0aa148ac9fd1cf4b3/raw/da784ba30346149c1b983e1a4d9d8f10a33917a5/rMapGgplotTheme.R")
+#bbbig <- make_bbox(long, lat, data = shef.f, f = 0.5)
+
+map <-
+  #qmap('s10 2th', zoom = 16, maptype = 'hybrid')
+  #ggmap(get_map(bbbig, maptype = "terrain")) +
+  ggplot(shef.f) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = TAEvec), colour = "black") +
+  coord_equal() + labs(x = "easting", y = "northing", fill = "Total\nabsolute\nerror") +
+  ggtitle("TAE scores")
+map + scale_fill_gradient(low = "green", high = "red") +
+theme(line = element_blank(),
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.background = element_rect(fill = "transparent"))
+
+
+## SAE ##
+
+# need 'tidyr' package
+
+install.packages("tidyr")
+require("tidyr")
+
+SAEvec_standard <- SAEvec *(mean(SAEvec) / mean(TAEvec))
+census.codes <- cbind(census.codes, SAEvec = SAEvec_standard)
+census.codes_molten <- gather(census.codes, variable, value)
+head(census.codes_molten)
+names(census.codes_molten) <- c("SAEvec", "variable", "id")
+shef.f <- inner_join(shef.f, census.codes_molten, by = "id") # should use inner_join instead
+
+#shef.lsoa@data = data.frame(shef.lsoa@data, census.codes[match(shef.lsoa@data[, "code"], census.codes[, "CODE.CODE"]),])
+shef.lsoa@data <- merge(shef.lsoa@data, census.codes, by.x = "code", by.y = "CODE")
+shef.f <- fortify(shef.lsoa, region = "code")
+shef.f <- merge(shef.f, shef.lsoa@data, by.x = "id", by.y = "code")
+
+map <-
+  #qmap('s10 2th', zoom = 16, maptype = 'hybrid')
+  #ggmap(get_map(bbbig, maptype = "terrain")) +
+  ggplot(shef.f) +
+  geom_polygon (aes(x = long, y = lat, group = group, fill = SAEvec), colour = "black") +
+  coord_equal() +  labs(fill = "Standardised\nabsolute\nerror") +
+  ggtitle("SAE scores")
+map + scale_fill_gradient(low = "green", high = "red") + 
+  theme(line = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_rect(fill = "transparent"))
+
+
+#### Further internal validation ####
+
+## T-tests (two-tailed equal variance) for internal validation
+# From Tanton and Edwards (2007) - Chapter 5 (Edwards and Clarke, 2007) -
+# use of t-tests as TAE and SAE don't give indications of statisitcal differences
+
+# overall model
+t.test(adhs.agg, census.data, var.equal = TRUE) # 0.9995 - no differences?
+# age
+t.test(census.data[, 1:8], as.numeric(adhs.agg[, 1:8]), var.equal = TRUE) # 0.9996
+# Gender
+t.test(census.data[, 9:10], as.numeric(adhs.agg[, 9:10]), var.equal = TRUE) # 0.9993
+# Qual
+t.test(census.data[, 11:12], as.numeric(adhs.agg[, 11:12]), var.equal = TRUE) # 0.9998
+# NSSEC
+t.test(census.data[, 13:21], as.numeric(adhs.agg[, 13:21]), var.equal = TRUE) # 0.9995
+# General health
+t.test(census.data[, 22:26], as.numeric(adhs.agg[, 22:26]), var.equal = TRUE) # 0.9998
+# Car
+t.test(census.data[, 27:28], as.numeric(adhs.agg[, 27:28]), var.equal = TRUE) # 1
+
+## Linear regression analysis for internal validation
+# From Tanton and Edwarsds (2007) -  Chapter 5 (Edwards and Clarke, 2007)
+
+# overall model
+lmMOD <- lm(census.data ~ adhs.agg)
+summary(lmMOD) # adjusted R2 of 1
+# Age variable
+lmAGE <- lm(census.data[, 1:8] ~ adhs.agg[, 1:8])
+summary(lmAGE) # adjusted R2 of 1
+# Gender variable
+lmSEX <- lm(census.data[, 9:10] ~ adhs.agg[, 9:10])
+summary(lmSEX) # adjusted R2 of 1
+# Qual variable
+lmQUAL <- lm(census.data[ ,11:12] ~ adhs.agg[, 11:12])
+summary(lmQUAL) # adjusted R2 of 1
+# NSSEC variable
+lmNS <- lm(census.data[, 13:21] ~ adhs.agg[, 13:21])
+summary(lmNS) # adjusted R2 of 1
+# Health variable
+lmQH <- lm(census.data[, 22:26] ~ adhs.agg[, 22:26])
+summary(lmQH) # adjusted R2 of 1
+# Car variable
+lmCAR <- lm(census.data[, 27:28] ~ adhs.agg[, 27:28])
+summary(lmCAR) # adjusted R2 of 1
+
+#### External validation ####
+
+### marital status
+
+require("ggplot2")
+
+## single
+mar <- read.csv("mar.csv")
+sing_c <- mar[, 1:2]
+ints_df$single <- ifelse(ints_df$MarSta== "Single", 1, 0)
+single <- aggregate(ints_df$single, by=list(Category=ints_df$zone), FUN=sum) 
+names(single) <- c("zone", "single")
+plot(sing_c$Single, single$single)
+mod <- lm(sing_c$Single ~ single$single)
+summary(mod) #0.9732
+single <- cbind(sing_c, single)
+single$zone <-  NULL
+names(single) <- c("LSOA_CODE", "single_census", "single_sim")
+View(single)
+rm(sing_c)
+ggplot(single, aes(single$single_census, single$single_sim)) + geom_point() + geom_smooth(method = lm) + xlab("single_census") + ylab("single_sim") + geom_abline()
+# seems to be slightly underestimating
+single$diff <- c(single$single_census - single$single_sim) 
+which.max(abs(single$diff))
+tail(order(abs(single$diff)), n = 10)
+table(single$diff)
+
+# Area 220 (highest) - area off Eccleshall RD (student area)
+# Area 151 (2nd highest) is area in Heeley/Meersbrook
+# Area 149 - another area in Heeley
+# Area 217 -  area off Eccleshall RD (student area)
+# Area 36 - area in Endcliffe (student area)
+# Area 273 - area in Highfield (Hallam student area?)
+# Area 241 -  are near Sprongvale RD (student area)
+# Area 341 - are on/near netherthrope RD/Shalesmoor roundabout
+# Area 316 - Area in Walkley (student?)
+# Area 327 - area in city centre - does contain some Hallam residences 
+
+## married
+mar_c <- mar[, 3]
+mar_c <- as.numeric(mar_c)
+ints_df$married <- ifelse(ints_df$MarSta== "Married", 1, 0)
+married <- aggregate(ints_df$married, by=list(Category=ints_df$zone), FUN=sum) 
+names(married) <- c("zone", "married")
+plot(mar_c, married$married)
+mod2 <- lm(mar_c ~ married$married)
+summary(mod2) # 0.817
+married <- cbind(mar_c, married)
+married$zone <- NULL
+names(married) <- c("married_census", "married_sim")
+rm(mar_c)
+ggplot(married, aes(married$married_census, married$married_sim)) + geom_point() + geom_smooth(method = lm) + xlab("married_census") + ylab("married_sim") + geom_abline()
+# seems to be overestimating
+married$diff <- c(married$married_census - married$married_sim) 
+married <- cbind(married, census.codes)
+which.max((married$diff))
+tail(order(abs(married$diff)), n = 10)
+table(married$diff)
+
+# Area 220 (highest) - area off Eccleshall RD (student area)
+# Area 151 (2nd highest) is area in Heeley/Meersbrook
+# Area 149 - another area in Heeley
+# Area 217 -  area off Eccleshall RD (student area)
+# Area 333 - Area near Park Hill/Station - Hallam student area
+# Area 222 -  area in Netheredge near Abbeydale RD
+# Area 316 - Area in Walkley (student?)
+# Area 107 - area off Eccleshall RD, near Endcliffe Park
+# Area 141 - Woodseats
+# Area 314 - Walkley
+
+## civil
+civ_c <- mar[, 4]
+View(civ_c)
+civ_c <- as.numeric(civ_c)
+ints_df$civil <- ifelse(ints_df$MarSta== "Civil partnership", 1, 0)
+civil <- aggregate(ints_df$civil, by=list(Category=ints_df$zone), FUN=sum) 
+names(civil) <- c("zone", "civil")
+plot(civ_c, civil$civil)
+mod3 <- lm(civ_c ~ civil$civil)
+summary(mod3) # doesn't work with such small numbers?
+civil <- cbind(civ_c, civil)
+civil$zone <- NULL
+names(civil) <- c("civil_census", "civil_sim")
+rm(civ_c)
+ggplot(civil, aes(civil$civil_census, civil$civil_sim)) + geom_point() + geom_smooth(method = lm) + xlab("civil_census") + ylab("civil_sim") + geom_abline()
+# ??
+
+## separated
+sep_c <- mar[, 5]
+View(sep_c)
+sep_c <- as.numeric(sep_c)
+ints_df$separ <- ifelse(ints_df$MarSta== "Seperated", 1, 0)
+separ <- aggregate(ints_df$separ, by=list(Category=ints_df$zone), FUN=sum) 
+names(separ) <- c("zone", "separ")
+plot(sep_c, separ$separ)
+mod4 <- lm(sep_c ~ separ$separ)
+summary(mod4) # 0.3108
+seperated <- cbind(sep_c, separ)
+seperated$zone <- NULL
+names(seperated) <- c("seperated_census", "seperated_sim")
+rm(sep_c, separ)
+ggplot(seperated, aes(seperated$seperated_census, seperated$seperated_sim)) + geom_point() + geom_smooth(method = lm) + xlab("seperated_census") + ylab("seperated_sim") + geom_abline()
+# seems to be overestimating
+
+## divorced
+div_c <- mar[, 6]
+View(div_c)
+div_c <- as.numeric(div_c)
+ints_df$divorce <- ifelse(ints_df$MarSta== "Divorced", 1, 0)
+divorced <- aggregate(ints_df$divorce, by=list(Category=ints_df$zone), FUN=sum) 
+names(divorced) <- c("zone", "divorce")
+plot(div_c, divorced$divorce)
+mod5 <- lm(div_c ~ divorced$divorce)
+summary(mod5) # 0.6308
+divorced <- cbind(div_c, divorced)
+divorced$zone <- NULL
+names(divorced) <- c("divorced_census", "divorced_sim")
+rm(div_c)
+ggplot(divorced, aes(divorced$divorced_census, divorced$divorced_sim)) + geom_point() + geom_smooth(method = lm) + xlab("divorced_census") + ylab("divorced_sim") + geom_abline()
+# more overestimation, but underestimation too
+
+## Widowed
+wid_c <- mar[, 7]
+View(wid_c)
+wid_c <- as.numeric(wid_c)
+ints_df$widow <- ifelse(ints_df$MarSta== "Widowed", 1, 0)
+Widowed <- aggregate(ints_df$widow, by=list(Category=ints_df$zone), FUN=sum) 
+names(Widowed) <- c("zone", "widow")
+plot(wid_c, Widowed$widow)
+mod6 <- lm(wid_c ~ Widowed$widow)
+summary(mod6) # 0.8696
+widowed <- cbind(wid_c, Widowed)
+widowed$zone <- NULL
+names(widowed) <- c("widowed_census", "widowed_sim")
+wid_c
+ggplot(widowed, aes(widowed$widowed_census, widowed$widowed_sim)) + geom_point() + geom_smooth(method = lm) + xlab("widowed_census") + ylab("widowed_sim") + geom_abline()
+# seems to be underestimating
+
+### Ethnicity
+
+eth <- read.csv("eth_ex_val.csv")
+View(eth)
+
+# White British
+
+wb_c <- eth[, 2]
+wb_c <- as.numeric(wb_c)
+View(wb_c)
+ints_df$wb <- ifelse(ints_df$Ethnicity== "White Br/O", 1, 0)
+wb_s <- aggregate(ints_df$wb, by=list(Category=ints_df$zone), FUN=sum)
+names(wb_s) <- c("zone", "wb")
+plot(wb_c, wb_s$wb)
+mod1 <- lm(wb_c ~ wb_s$wb)
+summary(mod1) # 0.5452
+WB <- cbind(wb_c, wb_s)
+WB$zone <- NULL
+names(WB) <- c("WB_census", "WB_sim")
+rm(wb_c, wb_s)
+ggplot(WB, aes(WB$WB_census, WB$WB_sim)) + geom_point() + geom_smooth(method = lm) + xlab("WB_census") + ylab("WB_sim") + geom_abline()
+# seems to be underestimating
+
+# mixed race
+
+eth <- read.csv("eth.csv")
+mr <- eth[, 4]
+mr <- as.numeric(mr)
+View(mr)
+ints_df$mr <- ifelse(ints_df$Ethnicity== "Mixed race", 1, 0)
+mr_s <- aggregate(ints_df$mr, by=list(Category=ints_df$zone), FUN=sum)
+names(mr_s) <- c("zone", "mr")
+plot(mr, mr_s$mr)
+mod2 <- lm(mr ~ mr_s$mr)
+summary(mod2)
+MR <- cbind(mr, mr_s$mr)
+
+### dvhsize ###
+
+# One # 
+
+dvh <- read.csv("dvh_ex.csv")
+dvhONE <- dvh[, 2]
+dvhONE <- as.numeric(dvhONE)
+View(dvh)
+ints_df$dvhONE <- ifelse(ints_df$DVHsize == "one", 1, 0)
+ONE <- aggregate(ints_df$dvhONE, by=list(Category=ints_df$zone), FUN=sum)
+names(ONE) <- c("zone", "dvhONE")
+plot(dvhONE, ONE$dvhONE)
+modONE <- lm(dvhONE ~ ONE$dvhONE)
+summary(modONE)
+
+# Two #
+
+dvhTWO <- dvh[, 3]
+dvhTWO <- as.numeric(dvhTWO)
+View(dvhTWO)
+ints_df$dvhTWO <- ifelse(ints_df$DVHsize == "two", 1, 0)
+TWO <- aggregate(ints_df$dvhTWO, by=list(Category=ints_df$zone), FUN=sum)
+names(TWO) <- c("zone", "dvhTWO")
+plot(dvhTWO, TWO$dvhTWO)
+modTWO <- lm(dvhTWO ~ TWO$dvhTWO)
+summary(modTWO)
+
+# Three #
+
+dvhTHREE <- dvh[, 4]
+dvhTHREE <- as.numeric(dvhTHREE)
+View(dvhTHREE)
+ints_df$dvhTHREE <- ifelse(ints_df$DVHsize == "three", 1, 0)
+THREE <- aggregate(ints_df$dvhTHREE, by=list(Category=ints_df$zone), FUN=sum)
+names(THREE) <- c("zone", "dvhTHREE")
+plot(dvhTHREE, THREE$dvhTHREE)
+modTHREE <- lm(dvhTHREE ~ THREE$dvhTHREE)
+summary(modTHREE)
+
+# Four # 
+
+dvhFOUR <- dvh[, 5]
+dvhFOUR <- as.numeric(dvhFOUR)
+View(dvhFOUR)
+ints_df$dvhFOUR <- ifelse(ints_df$DVHsize == "four", 1, 0)
+FOUR <- aggregate(ints_df$dvhFOUR, by=list(Category=ints_df$zone), FUN=sum)
+names(FOUR) <- c("zone", "dvhFOUR")
+plot(dvhFOUR, THREE$dvhFOUR)
+modFOUR <- lm(dvhFOUR ~ FOUR$dvhFOUR)
+summary(modFOUR)
+
+#### Phil's SEI code ####
+
+# 1 - (sum((test_llid_census$sim_llid - test_llid_census$llid) ^ 2) /
+#        sum((test_llid_census$llid - (mean(test_llid_census$llid))) ^ 2))
+# 
+# # TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+# 
+# mllid <- lm(llid ~ sim_llid, data = test_llid_census)
+# mllid <- summary(mllid)
+# x <- (sum(mllid$residuals ^ 2)) / (sum(with(test_llid_census, sim_llid - llid) ^ 2))
+# 
+# 
+# mllid$r.squared * x
+
+
+### Testing using the 'single' variable from 'marital status' ###
+
+test_single_census <- single
+
+1 - (sum((test_single_census$single_sim - test_single_census$single_census) ^ 2) /
+         sum((test_single_census$single_census - (mean(test_single_census$single_census))) ^ 2))
+#0.942852
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+msing <- lm(single_census ~ single_sim, data = test_single_census)
+msing <- summary(msing)
+x <- (sum(msing$residuals ^ 2)) / (sum(with(test_single_census, single_sim - single_census) ^ 2))
+
+msing$r.squared * x # 0.4543358
+
+
+### Testing using the 'married' variable from 'marital status' ###
+
+test_married_census <- married
+
+1 - (sum((test_married_census$married_sim - test_married_census$married_census) ^ 2) /
+       sum((test_married_census$married_census - (mean(test_married_census$married_census))) ^ 2))
+#0.6985742
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+mmar <- lm(married_census ~ married_sim, data = test_married_census)
+mmar <- summary(mmar)
+x <- (sum(mmar$residuals ^ 2)) / (sum(with(test_married_census, married_sim - married_census) ^ 2))
+
+mmar$r.squared * x # 0.5152183
+
+
+### Testing using the 'civil' variable from 'marital status' ###
+
+test_civil_census <- civil
+
+1 - (sum((test_civil_census$civil_sim - test_civil_census$civil_census) ^ 2) /
+       sum((test_civil_census$civil_census - (mean(test_civil_census$civil_census))) ^ 2))
+#-0.2612404
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+mciv <- lm(civil_census ~ civil_sim, data = test_civil_census)
+mciv <- summary(mciv)
+x <- (sum(mciv$residuals ^ 2)) / (sum(with(test_civil_census, civil_sim - civil_census) ^ 2))
+
+mciv$r.squared * x # 0.01435077
+
+
+### Testing using the 'seperated' variable from 'marital status' ###
+
+test_sep_census <- seperated
+
+1 - (sum((test_sep_census$seperated_sim - test_sep_census$seperated_census) ^ 2) /
+       sum((test_sep_census$seperated_census - (mean(test_sep_census$seperated_census))) ^ 2))
+#-0.148976
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+msep <- lm(seperated_census ~ seperated_sim, data = test_sep_census)
+msep <- summary(msep)
+x <- (sum(msep$residuals ^ 2)) / (sum(with(test_sep_census, seperated_sim - seperated_census) ^ 2))
+
+msep$r.squared * x # 0.1890889
+
+
+### Testing using the 'divorced' variable from 'marital status' ###
+
+test_div_census <- divorced
+
+1 - (sum((test_div_census$divorced_sim - test_div_census$divorced_census) ^ 2) /
+       sum((test_div_census$divorced_census - (mean(test_div_census$divorced_census))) ^ 2))
+#0.5973047
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+mdiv <- lm(divorced_census ~ divorced_sim, data = test_div_census)
+mdiv <- summary(mdiv)
+x <- (sum(mdiv$residuals ^ 2)) / (sum(with(test_div_census, divorced_sim - divorced_census) ^ 2))
+
+mdiv$r.squared * x # 0.5942902
+
+
+### Testing using the 'widowed' variable from 'marital status' ###
+
+test_wid_census <- widowed
+
+1 - (sum((test_wid_census$widowed_sim - test_wid_census$widowed_census) ^ 2) /
+       sum((test_wid_census$widowed_census - (mean(test_wid_census$widowed_census))) ^ 2))
+#0.7037611
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+mwid <- lm(widowed_census ~ widowed_sim, data = test_wid_census)
+mwid <- summary(mwid)
+x <- (sum(mwid$residuals ^ 2)) / (sum(with(test_wid_census, widowed_sim - widowed_census) ^ 2))
+
+mwid$r.squared * x # 0.3673029
+
+
+### Testing using the 'White british' variable from 'Ethnicity' ###
+
+test_wb_census <- WB
+
+1 - (sum((test_wb_census$WB_sim - test_wb_census$WB_census) ^ 2) /
+       sum((test_wb_census$WB_census - (mean(test_wb_census$WB_census))) ^ 2))
+#0.4975046
+
+# TODO llid + no_llid should = total for each zone. Do they? If not, why not?
+
+mwb <- lm(WB_census ~ WB_sim, data = test_wb_census)
+mwb <- summary(mwb)
+x <- (sum(mwb$residuals ^ 2)) / (sum(with(test_wb_census, WB_sim - WB_census) ^ 2))
+
+mwb$r.squared * x # 0.4933779
+
+
+#### Checking the error scores for the unconstrained variables ####
+################ from Smith et al., (2007) ########################
+
+## NOTE - this is NOT the SAE, as you've divided the error by area population totals
+
+
+# Single
+
+single$diff <- single[, 3] - single[, 2]
+single$diff <- abs(single[, 4])
+single$percent <- single[, 4]/single[, 2] * 100
+summary(single$percent)
+table(single$percent)
+sum(single$percent >= 20, na.rm=TRUE) # 42 12.2 with over 20% error
+42/345*100 # 12.2 with over 20% error
+
+# SAE
+
+single[, 4] <- NULL
+single[, 4] <- NULL
+zone_pop <- a[, 2]
+zone_pop <- as.numeric(zone_pop)
+single[, 1] <- NULL
+single$zone_pop <- zone_pop
+
+tae(single$single_census, single$single_sim)
+tae(single$single_census, single$single_sim)/sum(single$single_census) 
+
+sing_c <- single[,1]
+sing_s <- single[,2]  
+sing_c <- as.data.frame(sing_c)
+sing_s <- as.data.frame(sing_s)
+
+TAEvec <- rep(0, nrow(sing_c))
+SAEvec <- rep(0, nrow(sing_c))
+
+for(i in 1:nrow(sing_c)){
+  TAEvec[i] <- tae (sing_c[i,], sing_s[i,])
+  SAEvec[i] <- TAEvec[i]/ sum(sing_c[i,])
+}
+summary(TAEvec)
+summary(SAEvec)
+sum(SAEvec >= 0.2, na.rm=TRUE) # 44
+View(SAEvec)
+
+
+# Married
+
+married$diff <- married[, 2] - married[, 1]
+married$diff <- abs(married[, 3])
+married$percent <- married[, 3]/married[, 1] * 100
+summary(married$percent)
+table(married$percent)
+sum(married$percent >= 20, na.rm=TRUE) # 116
+116/345 * 100 # 66.4 under 20% error
+
+# SAE
+
+mar_c <- as.data.frame(married[, 1])
+mar_s <- as.data.frame(married[, 2])
+names(mar_c) <- c("married_c")
+names(mar_s) <- c("married_s")
+
+tae(mar_c$married_c, mar_s$married_s)
+tae(mar_c$married_c, mar_s$married_s)/sum(mar_c$married_c) 
+
+TAEvec <- rep(0, nrow(mar_c))
+SAEvec <- rep(0, nrow(mar_c))
+
+for(i in 1:nrow(mar_c)){
+  TAEvec[i] <- tae (mar_c[i,], mar_s[i,])
+  SAEvec[i] <- TAEvec[i]/ sum(mar_c[i,])
+}
+summary(TAEvec)
+summary(SAEvec)
+sum(SAEvec >= 0.2, na.rm=TRUE) # 113
+View(SAEvec)
+
+
+# Civil
+
+civil$diff <- civil[, 2] - civil[, 1]
+civil$diff <- abs(civil[, 3])
+civil$percent <- civil[, 3]/civil[, 1] * 100
+summary(civil$percent)
+table(civil$percent)
+sum(civil$percent >= 20, na.rm=TRUE) # 296
+
+seperated$diff <- seperated[, 2] - seperated[, 1]
+seperated$diff <- abs(seperated[, 3])
+seperated$percent <- seperated[, 3]/seperated[, 1] * 100
+summary(seperated$percent)
+table(seperated$percent)
+sum(seperated$percent >= 20, na.rm=TRUE) # 214
+
+divorced$diff <- divorced[, 2] - divorced[, 1]
+divorced$diff <- abs(divorced[, 3])
+divorced$percent <- divorced[, 3]/divorced[, 1] * 100
+summary(divorced$percent)
+table(divorced$percent)
+sum(divorced$percent >= 20, na.rm=TRUE) # 111
+
+widowed$diff <- widowed[, 2] - widowed[, 1]
+widowed$diff <- abs(widowed[, 3])
+widowed$percent <- widowed[, 3]/widowed[, 1] * 100
+summary(widowed$percent)
+table(widowed$percent)
+sum(widowed$percent >= 20, na.rm=TRUE) # 145
+
+#### creating a mean dmft variable ####
+
+mean_dmft <- aggregate(ints_df$numdu98, by=list(Category=ints_df$zone), FUN=sum)
+#zone_total <- aggregate(ints_df$zone, by = list(Category=ints_df$zone), FUN=sum)
+a <- table(ints_df$zone)
+a <- as.data.frame(table(ints_df$zone))
+mean_dmft <- (mean_dmft/a[,2])
+mean_dmft <- cbind(census.codes, mean_dmft)
+
+#install.packages("xlsx")
+library(xlsx)
+write.csv(mean_dmft, file = "mean_dmft.csv")
+
+sum(ints_df$numdu98)/452014 # 1.092483 - overall DMFT for Sheffield
+sum(ints_df$numdu98 == 0) # 267802/452014 = 0.5824639502 = 0.418 prevalence
+
+# just for those with decay
+
+ints_df2 <- ints_df[ which(ints_df$numdu98 > 0), ]
+sum(ints_df2$numdu98)/184212 # dmft of 2.68 among those with any sort of decay
+mean_dmft2 <- aggregate(ints_df2$numdu98, by=list(Category=ints_df2$zone), FUN=sum)
+
+b <- table(ints_df2$zone)
+b <- as.data.frame(table(ints_df2$zone))
+mean_dmft2 <- (mean_dmft2/b[,2])
+mean_dmft2 <- cbind(census.codes, mean_dmft2)
+summary(mean_dmft2)
+
+# mean dmft relationship with deprivation (IMD 2015)
+
+i <- read.csv("mean_dmft.csv")
+plot(i$mean_dmft, i$Index.of.Multiple.Deprivation..IMD..Score)
+lmdep <- lm(i$mean_dmft ~ i$Index.of.Multiple.Deprivation..IMD..Score)
+summary(lmdep) # 0.8563 (adjusted R-squared)
+
+
+# require("plyr")
+# ints_df_zone <- ddply(ints_df, "zone", function(z) tail(z, 1))
+# require("xlsx")
+# write.csv(ints_df_zone, file = "ints_df_zone.csv")
+
+
+#### 'Small area estimation using a reweighting algorithm' - reference for SEI
+#### 'Using SimBritain to Model the GeographicalImpact of National Gover nment Policies' - reference for SEI
+
+#### Further points to consider ####
+
+## Point from Robin's thesis about basic 'commen sense' checks using funtions like
+## 'plot' and 'summary' are a good way to start
+## Also, how to check if the model is over/under evaluating certain groups?
+## 'Regarding the target variables, inaccuracies can be expected because they are determined
+## entirely by their relationships with constraint variables' -  Robin's thesis - p.124
+## P.125 of Robin's thesis -  regression of a simulated variable against a census
+## variable - i.e. use your model to simulate something you can compare to census data(?)
+## P. 127 - tendancy of SMS to underestimate extent of spatial variation
+## Other methods in Robin's new SMS book?
+
+## NEED TO RUN INTERNAL VALIDATION CHECKS BEFORE OR AFTER INTEGERISATION??
+
+## NEED TO CHECK FOR OVER/UNDER ESTIMATION...
+
+## Smith et al. (2007) also use binary values for their unconstrained variables...
+## worth doing this yourself?
+
+## t-tests for external validation (Edwards and Clarke, 2007)
+
+########################################
+#### New attempt using output areas ####
+########################################
+
+census.data <- read.csv("census.data_OA3.csv")
+census.codes <- census.data[, 1]
+#census.data[, 1] <- NULL
+
+## Sorting the nssec unclassified's ##
+
+census.data$NS_tot <- NA
+census.data$NS_tot <- rowSums(census.data[, 14:22])
+
+census.data[, 14:22] <- sapply(14:22, function(x)
+  census.data[, x] / census.data$NS_tot
+)
+rowSums(census.data[which(rowSums(census.data[, 14:22]) != 1), 14:22])
+
+census.data[, 14:22] <- sapply(14:22, function(x)
+  census.data[, x]*(census.data$NS_tot + census.data[, 23])
+)
+
+all(rowSums(census.data[, 14:22]) == census.data[, 23] + census.data[, 31])
+
+census.data$NS_tot <- c(census.data$NS_tot + census.data$Not.classified) 
+census.data[, 23] <- NULL
+#adhs.cat[, 22] <- NULL
+
+census.data[, 14:22] <- round(census.data[, 14:22])
+all(rowSums(census.data[, 14:22]) == census.data[, 23])
+which(rowSums(census.data[, 14:22]) != census.data$NS_tot)
+rowSums(census.data[, 14:22])
+
+source(file="tempV3.R")
+
+all(rowSums(census.data[, 13:21]) == census.data[, 29])
+census.data[, 29] <- NULL
+
+rm(census.dataN, census.dataY, cdm1, cdm2, cdp1, cdp2)
+
+census.data <- read.csv("census.data_OA4.csv")
+census.data[,1] <- NULL
+
+## making all the data numeric ##
+
+census.data <- apply(census.data, 2, as.numeric)
+adhs.cat <- apply(adhs.cat, 2, as.numeric)
+colnames(census.data) <- colnames(adhs.cat)
+
+#### Using Robin's SMS code ####
+
+# weights matrix (2d)
+# weights <- array(NA, dim=c(nrow(adhs.raw), nrow(census.data)))
+# rm(weights)
+
+# aggregate survey data for comparison with census data
+# adhs.agg <- matrix(colSums(adhs.cat), nrow(census.data), ncol(census.data), byrow = T)
+
+adhs.raw <- select(adhs.raw, -tdecay)
+
+#census.data <- census.data[, -22]
+#adhs.cat <- adhs.cat[, -22]
+
+# IPF
+# install.packages("ipfp")
+library("ipfp")
+
+x0 <- rep(1, nrow(adhs.raw))
+
+adhs_catt <- t(adhs.cat)
+
+weights <- apply(census.data, 1, function(x)
+  ipfp(x, adhs_catt, x0, maxit = 15))
+
+# converting back to aggregates
+adhs.agg <- t(apply(weights, 2, function(x) colSums(x * adhs.cat)))
+
+# test result for first row
+adhs.agg[1,1:13] - census.data[1,1:13]
+cor(as.numeric(adhs.agg), as.numeric(census.data))
+
+plot(as.numeric(census.data), as.numeric(adhs.agg))
+
+#### integeristaion bit ====
+
+# Script 'integerising' SMS_tooth_decay weights, generating, exploring spatial microdata
+
+source(file="functions_shef.R") # functions for spatial microsimulation, inc. int_trs
+
+#### integerisation
+
+ints <- unlist(apply(weights, 2, int_trs)) # generate integerised result
+ints_df <- data.frame(id = ints, zone = rep(1:nrow(census.data), round(colSums(weights))))
+adhs.raw$id <- 1:nrow(adhs.raw) # assign each individual an id
+
+# Create spatial microdata, by joining the ids with associated attributes
+ints_df <- inner_join(ints_df, adhs.raw) # commented out to increase run-times
+
+summary(ints_df[ ints_df$zone == 3, ])
+#View(ints_df[ ints_df$zone == 1, ])
+
+## validating the results
+
+CorVec <- rep(0, dim(census.data)[1])
+
+for (i in 1:dim(census.data)[1]){
+  CorVec[i] <-  cor(as.numeric(census.data[i,]), as.numeric(adhs.agg[i,]))
+}
+
+summary(CorVec)
+which.min(CorVec) # zone with worst fit - 189
+head(order(CorVec), n = 3) # 189, 203, 26
+
+#### Total absolute error (TAE) ####
+
+tae <- function(observed, simulated){
+  obs_vec <- as.numeric(observed)
+  sim_vec <- as.numeric(simulated)
+  sum(abs(obs_vec - sim_vec))
+}
+
+#options("scipen"=100, "digits"=4) # - gets rid of exponential notation
+
+tae(census.data, adhs.agg) # 30.12193 when using 10+ iterations
+
+#### Standardised absolute error (SAE) ####
+
+tae(census.data, adhs.agg)/sum(census.data) # 1.110659e-05
+
+### external validation + check the census data (constraint totals) again ###
+
+### External validation - marital status ###
+
+mar <- read.csv("marital_status_OA.csv")
+
+require("ggplot2")
+
+## single
+sing_c_OA <- mar[, 1:2]
+ints_df$single <- ifelse(ints_df$MarSta== "Single", 1, 0)
+single <- aggregate(ints_df$single, by=list(Category=ints_df$zone), FUN=sum) 
+names(single) <- c("zone", "single")
+plot(sing_c_OA$Single, single$single)
+mod <- lm(sing_c_OA$Single ~ single$single)
+summary(mod) #0.9732
+single <- cbind(sing_c_OA, single)
+single$zone <-  NULL
+names(single) <- c("LSOA_CODE", "single_census", "single_sim")
+View(single)
+rm(sing_c_OA)
+ggplot(single, aes(single$single_census, single$single_sim)) + geom_point() + geom_smooth(method = lm) + xlab("single_census") + ylab("single_sim") + geom_abline()
+# seems to be slightly underestimating
+single$diff <- c(single$single_census - single$single_sim) 
+which.max(abs(single$diff))
+tail(order(abs(single$diff)), n = 10)
+table(single$diff)
+
+### SEI for the 'single' variable from 'marital status' ###
+
+test_single_census <- single
+
+1 - (sum((test_single_census$single_sim - test_single_census$single_census) ^ 2) /
+       sum((test_single_census$single_census - (mean(test_single_census$single_census))) ^ 2))
+#-0.07451952!!
+
+## married
+mar_c <- mar[, 3]
+mar_c <- as.numeric(mar_c)
+ints_df$married <- ifelse(ints_df$MarSta== "Married", 1, 0)
+married <- aggregate(ints_df$married, by=list(Category=ints_df$zone), FUN=sum) 
+names(married) <- c("zone", "married")
+plot(mar_c, married$married)
+mod2 <- lm(mar_c ~ married$married)
+summary(mod2) # 0.817
+married <- cbind(mar_c, married)
+married$zone <- NULL
+names(married) <- c("married_census", "married_sim")
+rm(mar_c)
+ggplot(married, aes(married$married_census, married$married_sim)) + geom_point() + geom_smooth(method = lm) + xlab("married_census") + ylab("married_sim") + geom_abline()
+# seems to be overestimating
+married$diff <- c(married$married_census - married$married_sim) 
+married <- cbind(married, census.codes)
+which.max((married$diff))
+tail(order(abs(married$diff)), n = 10)
+table(married$diff)
